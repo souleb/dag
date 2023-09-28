@@ -1,25 +1,26 @@
 package dag
 
 import (
-	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestEmptyGraph(t *testing.T) {
 	cases := []struct {
 		name     string
-		input    []interface{}
+		input    []any
 		expected string
 	}{
 		{
 			"not empty int vertices",
-			[]interface{}{1, 2, 3},
-			"1\n2\n3\n",
+			[]any{1, 2, 3},
+			"\n1\n2\n3\n",
 		},
 		{
 			"not empty string vertices",
-			[]interface{}{"a", "b", "c"},
-			"a\nb\nc\n",
+			[]any{"a", "b", "c"},
+			"\na\nb\nc\n",
 		},
 	}
 
@@ -29,11 +30,7 @@ func TestEmptyGraph(t *testing.T) {
 			for _, v := range tc.input {
 				g.Add(v)
 			}
-			actual := strings.TrimSpace(g.String())
-			expected := strings.TrimSpace(tc.expected)
-			if actual != expected {
-				t.Fatalf("Test %s \n expected: %s\n actual: %s", tc.name, expected, actual)
-			}
+			assert.Equal(t, g.String(), tc.expected)
 		})
 
 	}
@@ -42,18 +39,18 @@ func TestEmptyGraph(t *testing.T) {
 func TestBasicGraph(t *testing.T) {
 	cases := []struct {
 		name     string
-		input    []interface{}
+		input    []any
 		expected string
 	}{
 		{
 			"not empty int vertices",
-			[]interface{}{1, 2, 3},
-			"1\n  2 (1)\n  3 (1)\n2\n3",
+			[]any{1, 2, 3},
+			"\n1\n  2 (1)\n  3 (1)\n2\n3\n",
 		},
 		{
 			"not empty string vertices",
-			[]interface{}{"a", "b", "c"},
-			"a\n  b (1)\n  c (1)\nb\nc",
+			[]any{"a", "b", "c"},
+			"\na\n  b (1)\n  c (1)\nb\nc\n",
 		},
 	}
 
@@ -67,11 +64,7 @@ func TestBasicGraph(t *testing.T) {
 			g.AddEdge(tc.input[0], tc.input[2], 1)
 			g.AddEdge(tc.input[0], tc.input[1], 1)
 
-			actual := strings.TrimSpace(g.String())
-			expected := strings.TrimSpace(tc.expected)
-			if actual != expected {
-				t.Fatalf("Test %s \n expected:\n%s\n actual:\n%s", tc.name, expected, actual)
-			}
+			assert.Equal(t, g.String(), tc.expected)
 		})
 
 	}
@@ -80,18 +73,18 @@ func TestBasicGraph(t *testing.T) {
 func TestGraphRemove(t *testing.T) {
 	cases := []struct {
 		name     string
-		input    []interface{}
+		input    []any
 		expected string
 	}{
 		{
 			"remove int vertex",
-			[]interface{}{1, 2, 3},
-			"1\n  3 (1)\n3",
+			[]any{1, 2, 3},
+			"\n1\n  3 (1)\n3\n",
 		},
 		{
 			"remove string vertex",
-			[]interface{}{"a", "b", "c"},
-			"a\n  c (1)\nc",
+			[]any{"a", "b", "c"},
+			"\na\n  c (1)\nc\n",
 		},
 	}
 
@@ -106,11 +99,7 @@ func TestGraphRemove(t *testing.T) {
 			g.AddEdge(tc.input[0], tc.input[1], 1)
 			g.Remove(tc.input[1])
 
-			actual := strings.TrimSpace(g.String())
-			expected := strings.TrimSpace(tc.expected)
-			if actual != expected {
-				t.Fatalf("Test %s \n expected:\n%s\n actual:\n%s", tc.name, expected, actual)
-			}
+			assert.Equal(t, g.String(), tc.expected)
 		})
 
 	}
@@ -119,18 +108,18 @@ func TestGraphRemove(t *testing.T) {
 func TestGraphRemoveEdge(t *testing.T) {
 	cases := []struct {
 		name     string
-		input    []interface{}
+		input    []any
 		expected string
 	}{
 		{
 			"remove int edge",
-			[]interface{}{1, 2, 3},
-			"1\n  3 (1)\n2\n3",
+			[]any{1, 2, 3},
+			"\n1\n  3 (1)\n2\n3\n",
 		},
 		{
 			"remove string edge",
-			[]interface{}{"a", "b", "c"},
-			"a\n  c (1)\nb\nc",
+			[]any{"a", "b", "c"},
+			"\na\n  c (1)\nb\nc\n",
 		},
 	}
 
@@ -145,11 +134,7 @@ func TestGraphRemoveEdge(t *testing.T) {
 			g.AddEdge(tc.input[0], tc.input[1], 1)
 			g.RemoveEdge(tc.input[0], tc.input[1])
 
-			actual := strings.TrimSpace(g.String())
-			expected := strings.TrimSpace(tc.expected)
-			if actual != expected {
-				t.Fatalf("Test %s \n expected:\n%s\n actual:\n%s", tc.name, expected, actual)
-			}
+			assert.Equal(t, g.String(), tc.expected)
 		})
 
 	}
@@ -158,12 +143,12 @@ func TestGraphRemoveEdge(t *testing.T) {
 func TestGraphHasEdge(t *testing.T) {
 	cases := []struct {
 		name     string
-		input    []interface{}
+		input    []any
 		expected string
 	}{
 		{
 			"has string edge",
-			[]interface{}{"a", "b", "c"},
+			[]any{"a", "b", "c"},
 			"a (b)",
 		},
 	}
@@ -178,9 +163,7 @@ func TestGraphHasEdge(t *testing.T) {
 			g.AddEdge(tc.input[0], tc.input[2], 1)
 			g.AddEdge(tc.input[0], tc.input[1], 1)
 
-			if !g.HasEdge(tc.input[0], tc.input[1]) {
-				t.Fatalf("Test %s \n should have %s", tc.name, tc.expected)
-			}
+			assert.True(t, g.HasEdge(tc.input[0], tc.input[1]))
 		})
 
 	}
@@ -189,12 +172,12 @@ func TestGraphHasEdge(t *testing.T) {
 func TestGraphHasVertex(t *testing.T) {
 	cases := []struct {
 		name     string
-		input    []interface{}
+		input    []any
 		expected string
 	}{
 		{
 			"has string edge",
-			[]interface{}{"a", "b", "c"},
+			[]any{"a", "b", "c"},
 			"a",
 		},
 	}
@@ -206,9 +189,7 @@ func TestGraphHasVertex(t *testing.T) {
 				g.Add(v)
 			}
 
-			if !g.HasVertex(tc.input[0]) {
-				t.Fatalf("Test %s \n should have %s", tc.name, tc.expected)
-			}
+			assert.True(t, g.HasVertex(tc.input[0]))
 		})
 
 	}

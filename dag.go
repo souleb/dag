@@ -7,13 +7,13 @@ import (
 )
 
 // EdgeSet is a set data structure
-type EdgeSet map[interface{}]int
+type EdgeSet map[any]int
 
 // Graph represents a directed acyclic graph
 type Graph struct {
-	adjacencyMap map[interface{}]EdgeSet
+	adjacencyMap map[any]EdgeSet
 	// maintain a mapping of the vertices to their hashes.
-	hashMap map[interface{}]Vertex
+	hashMap map[any]Vertex
 }
 
 // Add a Vertex to the adjacencyMap.
@@ -98,7 +98,9 @@ func (g *Graph) HasVertex(v Vertex) bool {
 	return false
 }
 
-func (g *Graph) verticesEdgesMapAndSlice() ([]string, map[string][]string) {
+// computeGraphRepresentation returns a slice of vertices and a map of edges
+// for a graph.
+func (g *Graph) computeGraphRepresentation() ([]string, map[string][]string) {
 	names := make([]string, 0, len(g.adjacencyMap))
 	mapping := make(map[string][]string, len(g.adjacencyMap))
 
@@ -148,7 +150,7 @@ func (g *Graph) String() string {
 	var buf strings.Builder
 	buf.WriteString("\n")
 
-	names, mapping := g.verticesEdgesMapAndSlice()
+	names, mapping := g.computeGraphRepresentation()
 
 	for _, name := range names {
 		buf.WriteString(fmt.Sprintf("%s\n", name))
@@ -162,10 +164,10 @@ func (g *Graph) String() string {
 
 func (g *Graph) init() {
 	if g.adjacencyMap == nil {
-		g.adjacencyMap = make(map[interface{}]EdgeSet)
+		g.adjacencyMap = make(map[any]EdgeSet)
 	}
 
 	if g.hashMap == nil {
-		g.hashMap = make(map[interface{}]Vertex)
+		g.hashMap = make(map[any]Vertex)
 	}
 }

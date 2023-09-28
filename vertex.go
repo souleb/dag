@@ -4,32 +4,31 @@ import "fmt"
 
 // Vertex of the graph
 // can be anything
-type Vertex interface{}
+type Vertex any
 
 // VertexHashable is an optional interface that can be implemented to specify
-// an alternate hash code for a Vertex. If this isnt implemented, Go interface
-// equality is used.
+// an alternate hash code for a Vertex.
 type VertexHashable interface {
-	Hashcode() interface{}
+	Hashcode() any
 }
 
 // VertexID returns  the id of the Vertex.
-func VertexID(v Vertex) interface{} {
+func VertexID(v Vertex) any {
 	return hashcode(v)
 }
 
-// VertexName returns the nam eof a vertex
+// VertexName returns the name of a vertex
 func VertexName(v Vertex) string {
 	switch v := v.(type) {
 	case fmt.Stringer:
-		return fmt.Sprintf("%s", v)
+		return v.String()
 	default:
 		return fmt.Sprintf("%v", v)
 	}
 }
 
 // hashcode returns the hascode for a Vertex.
-func hashcode(v interface{}) interface{} {
+func hashcode(v any) any {
 	if h, ok := v.(VertexHashable); ok {
 		return h.Hashcode()
 	}
