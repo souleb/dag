@@ -10,76 +10,77 @@ import (
 func TestTopologicalSort(t *testing.T) {
 	cases := []struct {
 		name     string
-		input    map[any][]any
-		expected *TopoOrder
+		input    map[Vertex[any]][]Vertex[any]
+		expected *TopoOrder[any]
 		wantErr  bool
 	}{
 		{
 			"empty graph",
-			map[any][]any{},
-			&TopoOrder{},
+			map[Vertex[any]][]Vertex[any]{},
+			&TopoOrder[any]{},
 			false,
 		},
 		{
 			"no cycles",
-			map[any][]any{
-				1: {2},
-				2: {3, 4},
-				3: {4},
-				4: {5},
-				5: {6},
-				6: {},
+			map[Vertex[any]][]Vertex[any]{
+				{"1", 1}: {Vertex[any]{"2", 2}},
+				{"2", 2}: {Vertex[any]{"3", 3}, Vertex[any]{"4", 4}},
+				{"3", 3}: {Vertex[any]{"4", 4}},
+				{"4", 4}: {Vertex[any]{"5", 5}},
+				{"5", 5}: {Vertex[any]{"6", 6}},
+				{"6", 6}: {},
 			},
-			&TopoOrder{1, 2, 3, 4, 5, 6},
+			&TopoOrder[any]{Vertex[any]{"1", 1}, Vertex[any]{"2", 2}, Vertex[any]{"3", 3}, Vertex[any]{"4", 4}, Vertex[any]{"5", 5}, Vertex[any]{"6", 6}},
 			false,
 		},
 		{
 			"with cycles",
-			map[any][]any{
-				1: {2},
-				2: {3, 4},
-				3: {4},
-				4: {5, 1},
-				5: {6},
-				6: {},
+			map[Vertex[any]][]Vertex[any]{
+				{"1", 1}: {Vertex[any]{"2", 2}},
+				{"2", 2}: {Vertex[any]{"3", 3}, Vertex[any]{"4", 4}},
+				{"3", 3}: {Vertex[any]{"4", 4}},
+				{"4", 4}: {Vertex[any]{"5", 5}, Vertex[any]{"1", 1}},
+				{"5", 5}: {Vertex[any]{"6", 6}},
+				{"6", 6}: {},
 			},
 			nil,
 			true,
 		},
 		{
 			"with cycles and 2 edges",
-			map[any][]any{
-				1: {2},
-				2: {1},
+			map[Vertex[any]][]Vertex[any]{
+				{"1", 1}: {Vertex[any]{"2", 2}},
+				{"2", 2}: {Vertex[any]{"1", 1}},
 			},
 			nil,
 			true,
 		},
 		{
 			"with cycles and self loop",
-			map[any][]any{
-				1: {1, 2},
-				2: {},
+			map[Vertex[any]][]Vertex[any]{
+				{"1", 1}: {Vertex[any]{"2", 2}, Vertex[any]{"1", 1}},
+				{"2", 2}: {},
 			},
 			nil,
 			true,
 		},
 		{
 			"no cycles and job names",
-			map[any][]any{
-				"clean":  {"build"},
-				"build":  {"test"},
-				"test":   {"deploy"},
-				"deploy": {"release"},
+			map[Vertex[any]][]Vertex[any]{
+				{"clean", "clean"}:     {Vertex[any]{"build", "build"}},
+				{"build", "build"}:     {Vertex[any]{"test", "test"}},
+				{"test", "test"}:       {Vertex[any]{"deploy", "deploy"}},
+				{"deploy", "deploy"}:   {Vertex[any]{"release", "release"}},
+				{"release", "release"}: {},
 			},
-			&TopoOrder{"clean", "build", "test", "deploy", "release"},
+			&TopoOrder[any]{Vertex[any]{"clean", "clean"}, Vertex[any]{"build", "build"}, Vertex[any]{"test", "test"}, Vertex[any]{"deploy", "deploy"}, Vertex[any]{"release", "release"}},
 			false,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			var g Graph
+			g := Graph[any]{}
 			for v, edges := range tc.input {
 				g.Add(v)
 				for _, e := range edges {
@@ -93,7 +94,7 @@ func TestTopologicalSort(t *testing.T) {
 				return
 			}
 			require.NoError(t, err)
-			assert.Equal(t, actual, tc.expected)
+			assert.Equal(t, tc.expected, actual)
 		})
 
 	}

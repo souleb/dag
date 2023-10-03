@@ -6,22 +6,29 @@ import (
 	"strings"
 )
 
-// EdgeSet is a set data structure
-type EdgeSet map[any]int
+// EdgeSet is a set data structure for edges.
+type EdgeSet map[string]int
 
 // Graph represents a directed acyclic graph
-type Graph struct {
-	adjacencyMap map[any]EdgeSet
+type Graph[T any] struct {
+	adjacencyMap map[string]EdgeSet
 	// maintain a mapping of the vertices to their hashes.
-	hashMap map[any]Vertex
+	hashMap map[string]Vertex[T]
+}
+
+// New returns a new Graph instance.
+func New[T any]() *Graph[T] {
+	g := Graph[T]{}
+	g.init()
+	return &g
 }
 
 // Add a Vertex to the adjacencyMap.
 // It a Vertex with the same identity exist, it gets overwritten.
-func (g *Graph) Add(v Vertex) {
+func (g *Graph[T]) Add(v Vertex[T]) {
 	g.init()
 	// Add the vertex entry
-	hash := hashcode(v)
+	hash := v.hashcode()
 	if _, ok := g.adjacencyMap[hash]; !ok {
 		g.adjacencyMap[hash] = make(EdgeSet)
 	}
@@ -30,8 +37,8 @@ func (g *Graph) Add(v Vertex) {
 }
 
 // Remove delete a Vertex from the adjacencyMap.
-func (g *Graph) Remove(v Vertex) {
-	hash := hashcode(v)
+func (g *Graph[T]) Remove(v Vertex[T]) {
+	hash := v.hashcode()
 	// delete the vertex entry
 	delete(g.adjacencyMap, hash)
 
@@ -45,20 +52,21 @@ func (g *Graph) Remove(v Vertex) {
 
 // Vertex returns a Vertex pointer if it exists in the graph
 // Othervise returns a false boolean
-func (g *Graph) Vertex(hash string) (Vertex, bool) {
+func (g *Graph[T]) Vertex(hash string) (Vertex[T], bool) {
 	if v, ok := g.hashMap[hash]; ok {
 		return v, true
 	}
 
-	return nil, false
+	var empty Vertex[T]
+	return empty, false
 }
 
 // AddEdge add an edge to the Graph.
-func (g *Graph) AddEdge(source, target Vertex, weight int) {
+func (g *Graph[T]) AddEdge(source, target Vertex[T], weight int) {
 	g.init()
 
 	// Make sure that every used vertex shows up in our map keys.
-	hashSource, hashTarget := hashcode(source), hashcode(target)
+	hashSource, hashTarget := source.hashcode(), target.hashcode()
 	if _, ok := g.adjacencyMap[hashSource]; !ok {
 		g.Add(source)
 	}
@@ -71,16 +79,16 @@ func (g *Graph) AddEdge(source, target Vertex, weight int) {
 }
 
 // RemoveEdge delete an edge from the adjacencyMap.
-func (g *Graph) RemoveEdge(source, target Vertex) {
-	hashSource, hashTarget := hashcode(source), hashcode(target)
+func (g *Graph[T]) RemoveEdge(source, target Vertex[T]) {
+	hashSource, hashTarget := source.hashcode(), target.hashcode()
 	if set, ok := g.adjacencyMap[hashSource]; ok {
 		delete(set, hashTarget)
 	}
 }
 
 // HasEdge check if an edge exist between to vertices.
-func (g *Graph) HasEdge(source, target Vertex) bool {
-	hashSource, hashTarget := hashcode(source), hashcode(target)
+func (g *Graph[T]) HasEdge(source, target Vertex[T]) bool {
+	hashSource, hashTarget := source.hashcode(), target.hashcode()
 	if set, ok := g.adjacencyMap[hashSource]; ok {
 		if _, ok := set[hashTarget]; ok {
 			return true
@@ -90,8 +98,8 @@ func (g *Graph) HasEdge(source, target Vertex) bool {
 }
 
 // HasVertex check if a vertex is in the adjacencyMap.
-func (g *Graph) HasVertex(v Vertex) bool {
-	hash := hashcode(v)
+func (g *Graph[T]) HasVertex(v Vertex[T]) bool {
+	hash := v.hashcode()
 	if _, ok := g.adjacencyMap[hash]; ok {
 		return true
 	}
@@ -100,23 +108,23 @@ func (g *Graph) HasVertex(v Vertex) bool {
 
 // computeGraphRepresentation returns a slice of vertices and a map of edges
 // for a graph.
-func (g *Graph) computeGraphRepresentation() ([]string, map[string][]string) {
+func (g *Graph[T]) computeGraphRepresentation() ([]string, map[string][]string) {
 	names := make([]string, 0, len(g.adjacencyMap))
 	mapping := make(map[string][]string, len(g.adjacencyMap))
 
 	// Get the vertices and edges in alphabetical orders by using a string sort.
 	// having this deterministic behavior make testing easier.
 	for v, targets := range g.adjacencyMap {
-		names = append(names, VertexName(v))
+		names = append(names, v)
 		deps := make([]string, 0, len(targets))
 
 		for target, weight := range targets {
 			deps = append(deps, fmt.Sprintf(
-				"%s (%d)", VertexName(target), weight))
+				"%s (%d)", target, weight))
 		}
 		sort.Strings(deps)
 
-		mapping[VertexName(v)] = deps
+		mapping[v] = deps
 
 	}
 
@@ -126,8 +134,8 @@ func (g *Graph) computeGraphRepresentation() ([]string, map[string][]string) {
 }
 
 // Copy returns a copy of the graph
-func (g *Graph) Copy() *Graph {
-	var newGraph Graph
+func (g *Graph[T]) Copy() *Graph[T] {
+	var newGraph Graph[T]
 	newGraph.init()
 
 	for hash, edges := range g.adjacencyMap {
@@ -146,7 +154,7 @@ func (g *Graph) Copy() *Graph {
 }
 
 // String is a human-friendly representation of the graph
-func (g *Graph) String() string {
+func (g *Graph[T]) String() string {
 	var buf strings.Builder
 	buf.WriteString("\n")
 
@@ -162,12 +170,12 @@ func (g *Graph) String() string {
 	return buf.String()
 }
 
-func (g *Graph) init() {
+func (g *Graph[T]) init() {
 	if g.adjacencyMap == nil {
-		g.adjacencyMap = make(map[any]EdgeSet)
+		g.adjacencyMap = make(map[string]EdgeSet)
 	}
 
 	if g.hashMap == nil {
-		g.hashMap = make(map[any]Vertex)
+		g.hashMap = make(map[string]Vertex[T])
 	}
 }

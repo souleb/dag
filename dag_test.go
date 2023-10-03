@@ -9,28 +9,28 @@ import (
 func TestEmptyGraph(t *testing.T) {
 	cases := []struct {
 		name     string
-		input    []any
+		input    []Vertex[any]
 		expected string
 	}{
 		{
 			"not empty int vertices",
-			[]any{1, 2, 3},
-			"\n1\n2\n3\n",
+			[]Vertex[any]{{Name: "1", Value: 1}, {Name: "2", Value: 2}, {Name: "3", Value: 3}},
+			"\n1-int\n2-int\n3-int\n",
 		},
 		{
 			"not empty string vertices",
-			[]any{"a", "b", "c"},
-			"\na\nb\nc\n",
+			[]Vertex[any]{{Name: "a", Value: "a"}, {Name: "b", Value: "b"}, {Name: "c", Value: "c"}},
+			"\na-string\nb-string\nc-string\n",
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			var g Graph
+			g := Graph[any]{}
 			for _, v := range tc.input {
 				g.Add(v)
 			}
-			assert.Equal(t, g.String(), tc.expected)
+			assert.Equal(t, tc.expected, g.String())
 		})
 
 	}
@@ -39,31 +39,30 @@ func TestEmptyGraph(t *testing.T) {
 func TestBasicGraph(t *testing.T) {
 	cases := []struct {
 		name     string
-		input    []any
+		input    []Vertex[any]
 		expected string
 	}{
 		{
 			"not empty int vertices",
-			[]any{1, 2, 3},
-			"\n1\n  2 (1)\n  3 (1)\n2\n3\n",
+			[]Vertex[any]{{Name: "1", Value: 1}, {Name: "2", Value: 2}, {Name: "3", Value: 3}},
+			"\n1-int\n  2-int (1)\n  3-int (1)\n2-int\n3-int\n",
 		},
 		{
 			"not empty string vertices",
-			[]any{"a", "b", "c"},
-			"\na\n  b (1)\n  c (1)\nb\nc\n",
+			[]Vertex[any]{{Name: "a", Value: "a"}, {Name: "b", Value: "b"}, {Name: "c", Value: "c"}},
+			"\na-string\n  b-string (1)\n  c-string (1)\nb-string\nc-string\n",
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			var g Graph
+			g := Graph[any]{}
 			for _, v := range tc.input {
 				g.Add(v)
 			}
 
-			g.AddEdge(tc.input[0], tc.input[2], 1)
 			g.AddEdge(tc.input[0], tc.input[1], 1)
-
+			g.AddEdge(tc.input[0], tc.input[2], 1)
 			assert.Equal(t, g.String(), tc.expected)
 		})
 
@@ -73,33 +72,33 @@ func TestBasicGraph(t *testing.T) {
 func TestGraphRemove(t *testing.T) {
 	cases := []struct {
 		name     string
-		input    []any
+		input    []Vertex[any]
 		expected string
 	}{
 		{
 			"remove int vertex",
-			[]any{1, 2, 3},
-			"\n1\n  3 (1)\n3\n",
+			[]Vertex[any]{{Name: "1", Value: 1}, {Name: "2", Value: 2}, {Name: "3", Value: 3}},
+			"\n1-int\n  3-int (1)\n3-int\n",
 		},
 		{
 			"remove string vertex",
-			[]any{"a", "b", "c"},
-			"\na\n  c (1)\nc\n",
+			[]Vertex[any]{{Name: "a", Value: "a"}, {Name: "b", Value: "b"}, {Name: "c", Value: "c"}},
+			"\na-string\n  c-string (1)\nc-string\n",
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			var g Graph
+			g := Graph[any]{}
 			for _, v := range tc.input {
 				g.Add(v)
 			}
 
-			g.AddEdge(tc.input[0], tc.input[2], 1)
 			g.AddEdge(tc.input[0], tc.input[1], 1)
+			g.AddEdge(tc.input[0], tc.input[2], 1)
 			g.Remove(tc.input[1])
 
-			assert.Equal(t, g.String(), tc.expected)
+			assert.Equal(t, tc.expected, g.String())
 		})
 
 	}
@@ -108,33 +107,33 @@ func TestGraphRemove(t *testing.T) {
 func TestGraphRemoveEdge(t *testing.T) {
 	cases := []struct {
 		name     string
-		input    []any
+		input    []Vertex[any]
 		expected string
 	}{
 		{
 			"remove int edge",
-			[]any{1, 2, 3},
-			"\n1\n  3 (1)\n2\n3\n",
+			[]Vertex[any]{{Name: "1", Value: 1}, {Name: "2", Value: 2}, {Name: "3", Value: 3}},
+			"\n1-int\n  3-int (1)\n2-int\n3-int\n",
 		},
 		{
 			"remove string edge",
-			[]any{"a", "b", "c"},
-			"\na\n  c (1)\nb\nc\n",
+			[]Vertex[any]{{Name: "a", Value: "a"}, {Name: "b", Value: "b"}, {Name: "c", Value: "c"}},
+			"\na-string\n  c-string (1)\nb-string\nc-string\n",
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			var g Graph
+			g := Graph[any]{}
 			for _, v := range tc.input {
 				g.Add(v)
 			}
 
-			g.AddEdge(tc.input[0], tc.input[2], 1)
 			g.AddEdge(tc.input[0], tc.input[1], 1)
+			g.AddEdge(tc.input[0], tc.input[2], 1)
 			g.RemoveEdge(tc.input[0], tc.input[1])
 
-			assert.Equal(t, g.String(), tc.expected)
+			assert.Equal(t, tc.expected, g.String())
 		})
 
 	}
@@ -143,25 +142,25 @@ func TestGraphRemoveEdge(t *testing.T) {
 func TestGraphHasEdge(t *testing.T) {
 	cases := []struct {
 		name     string
-		input    []any
+		input    []Vertex[any]
 		expected string
 	}{
 		{
 			"has string edge",
-			[]any{"a", "b", "c"},
+			[]Vertex[any]{{Name: "a", Value: "a"}, {Name: "b", Value: "b"}, {Name: "c", Value: "c"}},
 			"a (b)",
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			var g Graph
+			g := Graph[any]{}
 			for _, v := range tc.input {
 				g.Add(v)
 			}
 
-			g.AddEdge(tc.input[0], tc.input[2], 1)
 			g.AddEdge(tc.input[0], tc.input[1], 1)
+			g.AddEdge(tc.input[0], tc.input[2], 1)
 
 			assert.True(t, g.HasEdge(tc.input[0], tc.input[1]))
 		})
@@ -172,19 +171,19 @@ func TestGraphHasEdge(t *testing.T) {
 func TestGraphHasVertex(t *testing.T) {
 	cases := []struct {
 		name     string
-		input    []any
+		input    []Vertex[any]
 		expected string
 	}{
 		{
 			"has string edge",
-			[]any{"a", "b", "c"},
+			[]Vertex[any]{{Name: "a", Value: "a"}, {Name: "b", Value: "b"}, {Name: "c", Value: "c"}},
 			"a",
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			var g Graph
+			g := Graph[any]{}
 			for _, v := range tc.input {
 				g.Add(v)
 			}

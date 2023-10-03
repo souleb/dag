@@ -2,10 +2,10 @@ package dag
 
 // tarjan algorithm to detect cycles in a graph
 // https://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm
-type tarjan struct {
-	graph    *Graph
+type tarjan[T any, V Vertex[T]] struct {
+	graph    *Graph[T]
 	index    int
-	stack    []Vertex
+	stack    []V
 	indices  map[any]int
 	lowlinks map[any]int
 	onStack  map[any]bool
@@ -14,16 +14,16 @@ type tarjan struct {
 // Cycles detect and return cycles in the graph
 // It implements the tarjan algorithm
 // It returns a list of vertices that form a cycle
-func (g *Graph) Cycles() []Vertex {
+func Cycles[T any](g *Graph[T]) []Vertex[T] {
 	if len(g.adjacencyMap) == 0 {
 		return nil
 	}
 
-	var scc []Vertex
+	var scc []Vertex[T]
 	g2 := g.Copy()
 	index := 0
-	stack := make([]Vertex, 0, len(g2.adjacencyMap))
-	tarjan := tarjan{
+	stack := make([]Vertex[T], 0, len(g2.adjacencyMap))
+	tarjan := tarjan[T, Vertex[T]]{
 		graph:    g2,
 		index:    index,
 		stack:    stack,
@@ -33,7 +33,7 @@ func (g *Graph) Cycles() []Vertex {
 	}
 
 	for _, v := range g2.hashMap {
-		if _, ok := tarjan.indices[hashcode(v)]; !ok {
+		if _, ok := tarjan.indices[v.hashcode()]; !ok {
 			scc = strongConnect(&v, &tarjan)
 		}
 	}
@@ -46,35 +46,35 @@ func (g *Graph) Cycles() []Vertex {
 
 }
 
-func strongConnect(source *Vertex, tarjan *tarjan) []Vertex {
-	tarjan.indices[hashcode(*source)] = tarjan.index
-	tarjan.lowlinks[hashcode(*source)] = tarjan.index
+func strongConnect[T any](source *Vertex[T], tarjan *tarjan[T, Vertex[T]]) []Vertex[T] {
+	tarjan.indices[source.hashcode()] = tarjan.index
+	tarjan.lowlinks[source.hashcode()] = tarjan.index
 	tarjan.index++
 	tarjan.stack = append(tarjan.stack, *source)
-	tarjan.onStack[hashcode(*source)] = true
-	output := []Vertex{}
+	tarjan.onStack[source.hashcode()] = true
+	output := []Vertex[T]{}
 
-	src := hashcode(*source)
+	src := source.hashcode()
 
-	for edge := range tarjan.graph.adjacencyMap[hashcode(*source)] {
-		target := tarjan.graph.hashMap[hashcode(edge)]
-		tar := hashcode(edge)
+	for edge := range tarjan.graph.adjacencyMap[source.hashcode()] {
+		target := tarjan.graph.hashMap[edge]
+		tar := edge
 		if _, ok := tarjan.indices[tar]; !ok {
 			strongConnect(&target, tarjan)
 			tarjan.lowlinks[src] = min(tarjan.lowlinks[src], tarjan.lowlinks[tar])
-		} else if tarjan.onStack[hashcode(tar)] {
+		} else if tarjan.onStack[edge] {
 			tarjan.lowlinks[src] = min(tarjan.lowlinks[src], tarjan.indices[tar])
 		}
 	}
 
 	if tarjan.lowlinks[src] == tarjan.indices[src] {
 		var w any
-		var v Vertex
+		var v Vertex[T]
 		for w != src {
 			v, tarjan.stack = tarjan.stack[len(tarjan.stack)-1], tarjan.stack[:len(tarjan.stack)-1]
 			tarjan.onStack[src] = false
 			output = append(output, v)
-			w = hashcode(v)
+			w = v.hashcode()
 		}
 	}
 
