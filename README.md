@@ -14,22 +14,29 @@ import (
 )
 
 func main() {
-  // Create a new DAG
-  d := dag.Graph{}
+  // Create a new DAG with vertices of type string
+  d := dag.New[string]
 
-  // Add some nodes
-  d.Add("a")
-  d.Add("b")
-  d.Add("c")
-  d.Add("d")
-  d.Add("e")
-  d.Add("f")
+  // Create some vertices
+  a := dag.NewVertex[string]("a")
+  b := dag.NewVertex[string]("b")
+  c := dag.NewVertex[string]("c")
+  d := dag.NewVertex[string]("d")
+  e := dag.NewVertex[string]("e")
+
+// Add the vertices to the DAG
+  d.AddVertex(a)
+  d.AddVertex(b)
+  d.AddVertex(c)
+  d.AddVertex(d)
+  d.AddVertex(e)
 
   // Add some edges
-  d.AddEdge("a", "b", 1)
-  d.AddEdge("a", "c", 1)
-  d.AddEdge("b", "d", 1)
-  d.AddEdge("c", "d", 1)
+  d.AddEdge(a, b, 1)
+  d.AddEdge(a, c, 1)
+  d.AddEdge(b, d, 1)
+  d.AddEdge(c, d, 1)
+  d.AddEdge(d, e, 1)
 
   // Sort the DAG
   sorted, err := d.TopologicalSort()

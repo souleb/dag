@@ -5,23 +5,23 @@ import (
 )
 
 // TopoOrder is a topological ordering.
-type TopoOrder []Vertex
+type TopoOrder[T any] []Vertex[T]
 
 // TopologicalSort implements the kahn algorithm and returns a topological ordering of the graph.
 // The graph must not have any cycle or it will return an error.
-func (g *Graph) TopologicalSort() (*TopoOrder, error) {
+func (g *Graph[T]) TopologicalSort() (*TopoOrder[T], error) {
 	if len(g.adjacencyMap) == 0 {
-		return &TopoOrder{}, nil
+		return &TopoOrder[T]{}, nil
 	}
 
 	g2 := g.Copy()
-	indegreeMap := make(map[Vertex]int)
+	indegreeMap := make(map[string]int)
 	processIndegrees(indegreeMap, g)
 
 	topOrder, visited := generateTopo(g2, indegreeMap)
 
 	if visited != len(g.adjacencyMap) || visited == -1 {
-		scc := g2.Cycles()
+		scc := Cycles(g)
 		return nil, fmt.Errorf("there exists a cycle in the graph: \n %#v", scc)
 	}
 
@@ -29,19 +29,18 @@ func (g *Graph) TopologicalSort() (*TopoOrder, error) {
 
 }
 
-func initQueue(graph *Graph, indegreeMap map[Vertex]int) TopoOrder {
-	queue := make(TopoOrder, 0, len(graph.adjacencyMap))
+func initQueue[T any, V Vertex[T]](graph *Graph[T], indegreeMap map[string]int) TopoOrder[T] {
+	queue := make(TopoOrder[T], 0, len(graph.adjacencyMap))
 	for hash := range graph.adjacencyMap {
-		v := graph.hashMap[hash]
-		if indegreeMap[v] == 0 {
-			queue = append(queue, v)
+		if indegreeMap[hash] == 0 {
+			queue = append(queue, graph.hashMap[hash])
 		}
 	}
 	return queue
 }
 
-func generateTopo(graph *Graph, indegreeMap map[Vertex]int) (*TopoOrder, int) {
-	topOrder := make(TopoOrder, 0, len(graph.adjacencyMap))
+func generateTopo[T any, V Vertex[T]](graph *Graph[T], indegreeMap map[string]int) (*TopoOrder[T], int) {
+	topOrder := make(TopoOrder[T], 0, len(graph.adjacencyMap))
 	var visited int
 
 	queue := initQueue(graph, indegreeMap)
@@ -55,18 +54,17 @@ func generateTopo(graph *Graph, indegreeMap map[Vertex]int) (*TopoOrder, int) {
 
 		topOrder = append(topOrder, source)
 		visited++
-		for targetHash := range graph.adjacencyMap[hashcode(source)] {
-			target := graph.hashMap[targetHash]
-			indegreeMap[target]--
-			if indegreeMap[target] == 0 {
-				queue = append(queue, target)
+		for targetHash := range graph.adjacencyMap[source.hashcode()] {
+			indegreeMap[targetHash]--
+			if indegreeMap[targetHash] == 0 {
+				queue = append(queue, graph.hashMap[targetHash])
 			}
 		}
 	}
 	return &topOrder, visited
 }
 
-func dequeue(queue *TopoOrder) {
+func dequeue[T any](queue *TopoOrder[T]) {
 	if len(*queue) > 1 {
 		*queue = (*queue)[1:]
 	} else {
@@ -74,7 +72,7 @@ func dequeue(queue *TopoOrder) {
 	}
 }
 
-func processIndegrees(indegreeMap map[Vertex]int, graph *Graph) {
+func processIndegrees[T any, V Vertex[T]](indegreeMap map[string]int, graph *Graph[T]) {
 	/*
 			for each source in Vertices
 		    indegree[source] = 0
@@ -82,13 +80,11 @@ func processIndegrees(indegreeMap map[Vertex]int, graph *Graph) {
 				indegree[dest]++
 	*/
 	for sourceHash, edges := range graph.adjacencyMap {
-		source := graph.hashMap[sourceHash]
-		if _, ok := indegreeMap[source]; !ok {
-			indegreeMap[source] = 0
+		if _, ok := indegreeMap[sourceHash]; !ok {
+			indegreeMap[sourceHash] = 0
 		}
 		for targetHash := range edges {
-			target := graph.hashMap[targetHash]
-			indegreeMap[target]++
+			indegreeMap[targetHash]++
 		}
 	}
 
